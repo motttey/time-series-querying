@@ -22,22 +22,32 @@
                     "2017-07", "2013-02", "2012-07", "2016-03", "2017-06", "2018-07", "2014-10", "2013-01", "2013-10", "2017-11", "2014-05", "2012-11", "2015-01", "2018-03", "2015-12", "2015-08", "2016-08", "2014-11", "2014-01",
                     "2013-06", "2012-08", "2015-09", "2016-07", "2013-03", "2012-09", "2016-05"];
 
-      let dataset = [];
-      for(let i=0; i<metricMonths.length; i++){
-          let obj = {count:  Math.floor(Math.random() * Math.floor(100)), month: metricMonths[i]};
-          dataset.push(obj);
-      }
+      let dataset_max = 100;
+      let dataset_length = 100;
+      let color = d3.scaleSequential(d3.interpolateRainbow).domain([0, dataset_length - 1]);
       let parser = d3.timeParse("%Y-%m");
-      dataset.forEach(function(d) {
-          d.month = parser(d.month);
-      });
 
-      dataset.sort(function(x, y){
-         return d3.ascending(x.month, y.month);
-      });
+      let dataset_array = [];
+      for (let i=0; i<dataset_length; i++){
+        let dataset = [];
+        for (let j=0; j<metricMonths.length; j++){
+            let obj = {count:  Math.floor(Math.random() * Math.floor(dataset_max)), month: metricMonths[j]};
+            dataset.push(obj);
+        }
 
-      let x_range = d3.extent(dataset, function(d) { return d.month; });
-      let y_range = [0, d3.max(dataset, function(d) { return d.count; })];
+        dataset.forEach(function(d) {
+            d.month = parser(d.month);
+        });
+
+        dataset.sort(function(x, y){
+           return d3.ascending(x.month, y.month);
+        });
+
+        dataset_array.push(dataset);
+      }
+
+      let x_range = d3.extent(dataset_array[0], function(d) { return d.month; });
+      let y_range = [0, dataset_max];
 
       let xScale = d3.scaleTime()
           .domain(x_range)
@@ -72,16 +82,19 @@
               return xScale(d["month"]);
           });
 
-      svg.append("path")
-          .datum(dataset)
-          .attr("fill", "none")
-          .attr("stroke", "red")
-          .attr("stroke-linejoin", "round")
-          .attr("stroke-linecap", "round")
-          .attr("stroke-width", 1.5)
-          .attr("class", "line_num1")
-          .attr("id", "path_1")
-          .attr("d", line_num1);
+      for (let i=0; i<dataset_length; i++){
+        svg.append("path")
+            .datum(dataset_array[i])
+            .attr("fill", "none")
+            .attr("stroke", color(i))
+            .attr("stroke-linejoin", "round")
+            .attr("stroke-linecap", "round")
+            .attr("stroke-width", 1.5)
+            .attr("class", "line_num1")
+            .attr("id", "path" + i)
+            .attr("d", line_num1);
+      }
+
 
     </script>
   </body>
