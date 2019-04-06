@@ -12,7 +12,78 @@
       <svg id="svg_main"></svg>
     </div>
 
+    <script>
+      const graph_witdh = 1000;
+      const graph_height = 500;
+      const padding = 50;
+
+      let metricMonths = [
+                    "2018-06", "2013-04", "2015-11", "2012-10", "2014-09", "2014-02", "2016-02", "2016-04", "2016-06", "2014-12", "2013-07", "2017-01", "2015-10", "2012-12", "2013-05", "2018-04", "2015-06", "2017-03", "2014-08",
+                    "2017-07", "2013-02", "2012-07", "2016-03", "2017-06", "2018-07", "2014-10", "2013-01", "2013-10", "2017-11", "2014-05", "2012-11", "2015-01", "2018-03", "2015-12", "2015-08", "2016-08", "2014-11", "2014-01",
+                    "2013-06", "2012-08", "2015-09", "2016-07", "2013-03", "2012-09", "2016-05"];
+
+      let dataset = [];
+      for(let i=0; i<metricMonths.length; i++){
+          let obj = {count:  Math.floor(Math.random() * Math.floor(100)), month: metricMonths[i]};
+          dataset.push(obj);
+      }
+      let parser = d3.timeParse("%Y-%m");
+      dataset.forEach(function(d) {
+          d.month = parser(d.month);
+      });
+
+      dataset.sort(function(x, y){
+         return d3.ascending(x.month, y.month);
+      });
+
+      let x_range = d3.extent(dataset, function(d) { return d.month; });
+      let y_range = [0, d3.max(dataset, function(d) { return d.count; })];
+
+      let xScale = d3.scaleTime()
+          .domain(x_range)
+          .range([padding , graph_witdh]);
+
+      //x軸は0から最大の値+5になるように指定
+      let yScale = d3.scaleLinear()
+          .domain(y_range)
+          .range([graph_height - padding, 0]);
+
+      let svg = d3.select("#svg_main")
+                  .attr("width", graph_witdh)
+                  .attr("height", graph_height);
+
+      // Add to X axis
+      svg.append("g")
+          .attr("class", "x axis")
+          .attr("transform", "translate(" + 0 + "," + (graph_height - padding) +")")
+          .call(d3.axisBottom(xScale));
+
+      // Add to Y axis
+      svg.append("g")
+          .attr("class", "y axis")
+          .attr("transform", "translate(" + padding  +",0)")
+          .call(d3.axisLeft(yScale));
+
+      let line_num1 = d3.line()
+          .y(function(d) {
+              return yScale(d["count"]);
+          })
+          .x(function(d, i) {
+              return xScale(d["month"]);
+          });
+
+      svg.append("path")
+          .datum(dataset)
+          .attr("fill", "none")
+          .attr("stroke", "red")
+          .attr("stroke-linejoin", "round")
+          .attr("stroke-linecap", "round")
+          .attr("stroke-width", 1.5)
+          .attr("class", "line_num1")
+          .attr("id", "path_1")
+          .attr("d", line_num1);
+
+    </script>
   </body>
-  <script>
-  </script>
+
 </html>
