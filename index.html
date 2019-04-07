@@ -13,7 +13,7 @@
     </div>
 
     <script>
-      const graph_witdh = 1000;
+      const graph_width = 1000;
       const graph_height = 500;
       const padding = 50;
 
@@ -51,25 +51,30 @@
 
       let xScale = d3.scaleTime()
           .domain(x_range)
-          .range([padding , graph_witdh]);
+          .range([padding , graph_width]);
 
       //x軸は0から最大の値+5になるように指定
       let yScale = d3.scaleLinear()
           .domain(y_range)
           .range([graph_height - padding, 0]);
 
+      var zoom = d3.zoom()
+            .scaleExtent([1, 20])
+            .extent([[0, 0], [graph_width, graph_height]])
+            .on("zoom", updateChart);
+
       let svg = d3.select("#svg_main")
-                  .attr("width", graph_witdh)
+                  .attr("width", graph_width)
                   .attr("height", graph_height);
 
       // Add to X axis
-      svg.append("g")
+      let xAxis = svg.append("g")
           .attr("class", "x axis")
           .attr("transform", "translate(" + 0 + "," + (graph_height - padding) +")")
           .call(d3.axisBottom(xScale));
 
       // Add to Y axis
-      svg.append("g")
+      let yAxis = svg.append("g")
           .attr("class", "y axis")
           .attr("transform", "translate(" + padding  +",0)")
           .call(d3.axisLeft(yScale));
@@ -95,7 +100,22 @@
             .attr("d", line_num1);
       }
 
+      svg.append("rect")
+          .attr("width", graph_width)
+          .attr("height", graph_height)
+          .style("fill", "none")
+          .style("pointer-events", "all")
+          .call(zoom);
 
+      function updateChart() {
+        xScale = d3.event.transform.rescaleX(xScale);
+        xAxis.call(d3.axisBottom(xScale));
+
+        svg.selectAll(".line_num1")
+          .each(function(d){
+            d3.select(this).attr("d", line_num1);
+        });
+      }
     </script>
   </body>
 
