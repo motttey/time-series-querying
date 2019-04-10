@@ -60,24 +60,32 @@
 
       var zoom = d3.zoom()
             .scaleExtent([1, 20])
-            .extent([[0, 0], [graph_width, graph_height]])
+            .translateExtent([
+              [0, 0],
+              [graph_width + 100, graph_height + 100]
+            ])
+            .filter(function filter(){
+                return !d3.event.button && d3.event.type == 'wheel';
+            })
             .on("zoom", updateChart);
 
       let svg = d3.select("#svg_main")
-                  .attr("width", graph_width)
-                  .attr("height", graph_height);
+          .attr("width", graph_width)
+          .attr("height", graph_height);
 
       // Add to X axis
-      let xAxis = svg.append("g")
+      let xAxis = d3.axisBottom(xScale);
+      let xAxis_g = svg.append("g")
           .attr("class", "x axis")
           .attr("transform", "translate(" + 0 + "," + (graph_height - padding) +")")
-          .call(d3.axisBottom(xScale));
+          .call(xAxis);
 
       // Add to Y axis
-      let yAxis = svg.append("g")
+      let yAxis = d3.axisLeft(yScale);
+      let yAxis_g = svg.append("g")
           .attr("class", "y axis")
           .attr("transform", "translate(" + padding  +",0)")
-          .call(d3.axisLeft(yScale));
+          .call(yAxis);
 
       let line_num1 = d3.line()
           .y(function(d) {
@@ -100,21 +108,28 @@
             .attr("d", line_num1);
       }
 
-      svg.append("rect")
+      let view = svg.append("rect")
           .attr("width", graph_width)
           .attr("height", graph_height)
           .style("fill", "none")
           .style("pointer-events", "all")
-          .call(zoom);
+      svg.call(zoom);
 
       function updateChart() {
         xScale = d3.event.transform.rescaleX(xScale);
-        xAxis.call(d3.axisBottom(xScale));
+        xAxis_g.call(d3.axisBottom(xScale));
+
+        console.log(d3.event.transform);
+
+        // view.attr("transform", d3.event.transform);
+        // xAxis_g.call(xAxis.scale(d3.event.transform.rescaleX(xScale)));
+        // svg.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
 
         svg.selectAll(".line_num1")
           .each(function(d){
             d3.select(this).attr("d", line_num1);
         });
+
       }
     </script>
   </body>
