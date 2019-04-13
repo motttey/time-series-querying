@@ -113,7 +113,63 @@
           .attr("height", graph_height)
           .style("fill", "none")
           .style("pointer-events", "all")
+
+      let input_trajectory = d3.line().curve(d3.curveBasis);
+      let drag_sketch = d3.drag()
+          .container(function() { return this; })
+          .subject(function() { let p = [d3.event.x, d3.event.y]; return [p, p]; })
+          .on("start", sketch_dragstarted)
+          .on("end", sketch_dragended);
+
+      svg.call(drag_sketch);
       svg.call(zoom);
+
+      function sketch_dragstarted() {
+          let d = d3.event.subject,
+              x0 = d3.event.x;
+              y0 = d3.event.y;
+
+          let active = d3.select("#svg_main")
+            .append("path")
+            .datum(d)
+            .on("click", function(d){
+              if (delete_objects_clicked) d3.select(this).remove();
+            });
+
+          // d3.selectAll(".input_history_sketches").remove();
+
+          d3.event.on("drag", function() {
+              let x1 = d3.event.x,
+              y1 = d3.event.y,
+              dx = x1 - x0 ,
+              dy = y1 - y0 ;
+
+              if (dx * dx + dy * dy > 100) d.push([x0 = x1, y0 = y1]);
+              else d[d.length - 1] = [x1, y1];
+
+              active.attr("d", input_trajectory)
+                .attr("class", "input_sketches")
+                .style("fill", "none")
+                .style("stroke", "black")
+                .style("stroke-width", "3px");
+          });
+      }
+
+      function sketch_dragended(){
+          // 描いた軌跡を目立たせる
+          let path = d3.selectAll(".input_sketches")
+              .transition()      // apply a transition
+              .style("stroke", "red")  // Change color
+              .style("stroke-width", "2px")
+              .transition()      // apply a transition
+              .duration(200)
+              .style("stroke", "black")  // Change color
+              .style("stroke-width", "3px")
+              .style("display", "block");
+
+          // if ( path.node("path")!= null) path_to_polygon(path.node("path"));
+          // path.remove();
+      }
 
       function updateChart() {
         xScale = d3.event.transform.rescaleX(xScale);
